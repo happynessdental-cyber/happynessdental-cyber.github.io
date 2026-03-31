@@ -1361,7 +1361,10 @@ if (sessionStorage.getItem('fumei_auth') === '1') {
           <div class="user-role">院長 / 管理員</div>
         </div>
       </div>
-      <button onclick="resetAllData()" style="width:100%;margin-top:8px;padding:8px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:transparent;color:var(--ink-mute);font-size:11px;font-family:var(--font-display);cursor:pointer;opacity:0.6" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">🔄 恢復初始資料</button>
+      <button onclick="exportData()" style="width:100%;margin-top:8px;padding:8px;border:1.5px solid var(--mint-dark);border-radius:var(--r-sm);background:var(--mint-light);color:var(--mint-dark);font-size:11px;font-family:var(--font-display);cursor:pointer;font-weight:700" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💾 匯出備份資料</button>
+      <button onclick="document.getElementById('import-file-input').click()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:transparent;color:var(--ink-soft);font-size:11px;font-family:var(--font-display);cursor:pointer" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📂 匯入備份資料</button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importData(event)">
+      <button onclick="resetAllData()" style="width:100%;margin-top:4px;padding:8px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:transparent;color:var(--ink-mute);font-size:11px;font-family:var(--font-display);cursor:pointer;opacity:0.6" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">🔄 恢復初始資料</button>
     </div>
   </aside>
 
@@ -2263,6 +2266,78 @@ function resetAllData() {
   if (!confirm('確定要恢復所有資料為初始狀態嗎？\n這會清除所有手動修改的內容！')) return;
   Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
   location.reload();
+}
+
+// ─── 匯出/匯入資料 ───
+function exportData() {
+  try {
+    const data = {
+      _exportInfo: {
+        exportDate: new Date().toLocaleString('zh-TW'),
+        version: '1.0',
+        source: '福美牙醫內部網站'
+      },
+      announcements: announcements,
+      events: events,
+      materials: materials
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `福美備份_${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('💾 資料已匯出備份！');
+  } catch(e) {
+    console.error('匯出失敗:', e);
+    showToast('❌ 匯出失敗，請再試一次');
+  }
+}
+
+function importData(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.announcements && !data.events && !data.materials) {
+        showToast('❌ 檔案格式不正確');
+        return;
+      }
+      if (!confirm(`確定要匯入備份資料嗎？\n${data._exportInfo ? '備份時間：' + data._exportInfo.exportDate : ''}\n\n這會覆蓋目前的所有資料！`)) return;
+
+      if (Array.isArray(data.announcements) && data.announcements.length > 0) {
+        announcements = data.announcements;
+        saveToLocal('announcements', announcements);
+      }
+      if (data.events && typeof data.events === 'object' && !Array.isArray(data.events)) {
+        events = data.events;
+        saveToLocal('events', events);
+      }
+      if (Array.isArray(data.materials) && data.materials.length > 0) {
+        materials = data.materials;
+        saveToLocal('materials', materials);
+      }
+      // 重新渲染所有頁面
+      try { renderCalendar(); } catch(err) {}
+      try { renderAnnouncements(); } catch(err) {}
+      try { renderDashAnnouncements(); } catch(err) {}
+      try { renderTodayEvents(); } catch(err) {}
+      try { renderDashUpcoming(); } catch(err) {}
+      try { renderMaterials(); } catch(err) {}
+      showToast('✅ 備份資料已成功匯入！');
+    } catch(err) {
+      console.error('匯入失敗:', err);
+      showToast('❌ 檔案讀取失敗，請確認是正確的備份檔');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
 }
 
 // ─── DATA ───
