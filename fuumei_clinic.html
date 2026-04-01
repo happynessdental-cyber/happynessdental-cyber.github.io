@@ -1273,42 +1273,104 @@ body::before {
 }
 .quick-link:hover { border-color: var(--mint); background: var(--mint-light); color: var(--ink); transform: translateY(-2px); }
 
-
 /* ─── MOBILE RESPONSIVE ─── */
 @media (max-width: 768px) {
-  .app { grid-template-columns: 1fr; min-height: auto; }
-  .sidebar {
-    position: fixed; left: -260px; top: 0; width: 260px;
-    height: 100vh; z-index: 999; transition: left .3s ease;
+  .app {
+    grid-template-columns: 1fr;
+    min-height: auto;
   }
-  .sidebar.mobile-open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
-  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 998; }
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    width: 260px;
+    height: 100vh;
+    z-index: 999;
+    transition: left .3s ease;
+    box-shadow: none;
+  }
+  .sidebar.mobile-open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  }
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 998;
+  }
   .mobile-overlay.show { display: block; }
   .mobile-menu-btn {
-    display: flex !important; align-items: center; justify-content: center;
-    width: 40px; height: 40px; border-radius: var(--r-sm);
-    border: 2px solid var(--border); background: var(--white);
-    cursor: pointer; font-size: 20px; flex-shrink: 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-sm);
+    border: 2px solid var(--border);
+    background: var(--white);
+    cursor: pointer;
+    font-size: 20px;
+    flex-shrink: 0;
   }
   .main { padding: 16px; }
-  .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
-  .calendar-wrap { grid-template-columns: 1fr; gap: 14px; }
-  .mat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .detail-modal { width: 95vw; max-height: 92vh; }
-  .announce-detail-modal { width: 95vw; max-width: 95vw; }
-  .topbar { padding: 12px 16px; gap: 10px; }
-  .topbar h2 { font-size: 18px; }
-  .stat-row { flex-direction: column; gap: 10px; }
-  .form-grid { grid-template-columns: 1fr; }
-  .schedule-grid { grid-template-columns: 1fr; }
+  .topbar { margin-bottom: 16px; }
+  .page-title { font-size: 20px; }
+  .page-title-icon { width: 34px; height: 34px; font-size: 16px; }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .calendar-wrap {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .cal-day { min-height: 50px; padding: 4px 2px 3px; }
+  .day-num { font-size: 12px; }
+  .card { padding: 16px; border-radius: var(--r-md); }
+  .stat-value { font-size: 28px; }
+  .announce-page-list { gap: 10px; }
+  .announce-full { padding: 14px 16px; }
+  .mat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mat-card-img { height: 110px; }
+  .detail-modal { width: 95vw; max-height: 92vh; border-radius: var(--r-lg); }
+  .detail-modal-header { padding: 16px 18px 12px; }
+  .detail-modal-body { padding: 16px 18px 20px; }
+  .detail-modal-title { font-size: 16px; }
+  .mat-blog { width: 95vw; }
+  .mat-blog-hero { height: 180px; }
+  .mat-blog-content { padding: 20px; }
+  .modal { width: 92vw; padding: 20px; }
+  .event-modal { width: 92vw; }
+  .topbar-actions { gap: 6px; }
+  .btn { padding: 7px 12px; font-size: 12px; }
+  .date-chip { padding: 6px 10px; font-size: 12px; }
+  .cal-sidebar { gap: 12px; }
+  .form-title { font-size: 14px; }
+  .mat-tabs { gap: 6px; margin-bottom: 14px; }
+  .mat-tab { padding: 6px 12px; font-size: 12px; }
+  /* 隱藏桌面選單按鈕提示 */
+  .sidebar-footer { padding: 12px; }
 }
+
 @media (max-width: 480px) {
-  .mat-grid { grid-template-columns: 1fr; }
-  .dashboard-grid { grid-template-columns: 1fr; }
+  .mat-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
   .topbar { flex-wrap: wrap; gap: 10px; }
 }
+
+/* 桌面版隱藏手機選單按鈕 */
 .mobile-menu-btn { display: none; }
 .mobile-overlay { display: none; }
+
 </style>
 </head>
 <body>
@@ -1348,20 +1410,10 @@ async function doLogin() {
 if (sessionStorage.getItem('fumei_auth') === '1') {
   document.getElementById('login-screen').style.display = 'none';
 }
-
-(function initMobileMenu() {
-  document.querySelectorAll('.topbar').forEach(bar => {
-    const btn = document.createElement('button');
-    btn.className = 'mobile-menu-btn';
-    btn.textContent = '☰';
-    btn.onclick = toggleMobileMenu;
-    bar.insertBefore(btn, bar.firstChild);
-  });
-})();
 </script>
 
 <div class="app">
-<div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
+  <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 
   <!-- ─── SIDEBAR ─── -->
   <aside class="sidebar">
@@ -2463,6 +2515,7 @@ try { renderTodayEvents(); } catch(e) { console.error('renderTodayEvents 錯誤:
 try { renderDashUpcoming(); } catch(e) { console.error('renderDashUpcoming 錯誤:', e); }
 
 // ─── SECTION NAV ───
+// ─── 手機版選單切換 ───
 function toggleMobileMenu() {
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('mobile-overlay');
@@ -2475,11 +2528,23 @@ function showSection(id, el) {
   document.getElementById('section-' + id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  // 手機版：切換頁面後自動收合選單
   const sidebar = document.querySelector('.sidebar');
   const overlay = document.getElementById('mobile-overlay');
   if (sidebar) sidebar.classList.remove('mobile-open');
   if (overlay) overlay.classList.remove('show');
 }
+
+// ─── 動態插入手機版漢堡選單按鈕 ───
+(function initMobileMenu() {
+  document.querySelectorAll('.topbar').forEach(bar => {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-menu-btn';
+    btn.textContent = '☰';
+    btn.onclick = toggleMobileMenu;
+    bar.insertBefore(btn, bar.firstChild);
+  });
+})();
 
 // ─── CALENDAR ───
 function renderCalendar() {
@@ -2564,6 +2629,7 @@ function addEvent() {
 function renderTodayEvents(dateStr) {
   const d = dateStr || todayStr;
   const container = document.getElementById('events-today-list');
+  if (!container) return;
   const evts = events[d] || [];
   const colorMap = { meeting:'#6A5DCC', doctor:'#4A90D9', mint:'var(--mint-dark)', pink:'var(--pink-dark)', sky:'#4A90D9', peach:'var(--peach-dark)', lav:'#6A5DCC' };
   const dateLabel = new Date(d).toLocaleDateString('zh-TW', { month:'long', day:'numeric' });
@@ -2665,11 +2731,11 @@ function renderDashAnnouncements() {
   const tagLabelMap = { urgent:'⚠️ 緊急', info:'ℹ️ 資訊', general:'✅ 一般', gold:'🎉 活動' };
   const dotMap = { urgent:'dot-urgent', info:'dot-info', general:'dot-general', gold:'dot-gold' };
 
-  // Show top 3 announcements
+  // Show top 3 announcements（使用原始陣列索引避免錯位）
   const top3 = announcements.slice(0, 3);
   container.innerHTML = top3.map((a, sliceIdx) => {
-      const realIdx = announcements.indexOf(a);
-      return `
+    const realIdx = announcements.indexOf(a);
+    return `
     <div class="announce-item ${a.type}" onclick="showAnnounceDetail(${realIdx})" style="cursor:pointer">
       <div class="announce-dot ${dotMap[a.type]}"></div>
       <div class="announce-content">
@@ -2680,8 +2746,8 @@ function renderDashAnnouncements() {
           <span>${a.time}</span>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function addAnnouncement() {
@@ -2820,7 +2886,6 @@ let materials = [
   { id:67, name:'Bio-MEM PTFE Membrane', cat:'implant', vendor:'法蘭克福科技（B&Medi）', img:'https://image-cdn-flare.qdm.cloud/q575d8be4a8189/image/data/2020/08/11/0f2518da003043a6e13d7949bd57ce95.jpg', intro:'韓國 B&Medi Bio-MEM 不可吸收 PTFE 再生薄膜，微孔 PTFE 材質，用於植牙骨引導再生術（GBR），阻擋軟組織長入骨缺損區。', usage:'1. 依缺損區域修剪膜的大小<br>2. 覆蓋骨粉/骨缺損區<br>3. 膜須超出缺損邊緣 2-3mm<br>4. 以鈦釘或縫線固定', caution:'• 不可吸收，需二次手術取出<br>• 微孔 PTFE 材質不易感染<br>• 注意傷口張力避免膜暴露', link:'https://www.frankfurt.com.tw/product/product&product_id=475', dropbox:'' },
   { id:68, name:'Charmant 防護面罩', cat:'supply', vendor:'法蘭克福科技（Charmant）', img:'https://image-cdn-flare.qdm.cloud/q575d8be4a8189/image/data/2020/05/18/9f96f0b58f630ec74bea81605975e70e.jpg', intro:'Charmant 防護面罩鏡架套組，搭配 MSR2419F 全遮面防霧鏡片。全光學可見光透過率 >91%，通過 EN168 防霧測試。可同時佩戴眼鏡、口罩、放大鏡。輕量型不鏽鋼材質。', usage:'1. 將鏡架佩戴於頭部<br>2. 安裝防護面罩鏡片<br>3. 調整鬆緊度<br>4. 可搭配眼鏡及口罩同時使用', caution:'• 雙面防霧設計<br>• 可消毒重複使用<br>• 有效防止液體及飛沫噴濺', link:'https://www.frankfurt.com.tw/product/product&product_id=457', dropbox:'' },
   { id:69, name:'醫療用口外吸塵器', cat:'equip', vendor:'法蘭克福科技', img:'https://image-cdn-flare.qdm.cloud/q575d8be4a8189/image/data/2018/10/03/ed080c8036a822120b6140946a7c9a1c.jpg', intro:'醫療用口外吸塵器，用於牙科治療時吸除口外飛沫、粉塵及氣溶膠，提升診間空氣品質與感染控制。', usage:'1. 放置於患者口旁<br>2. 開啟吸塵器<br>3. 調整吸力及角度<br>4. 治療過程中持續運作', caution:'• 定期更換濾網<br>• 注意吸力調整<br>• 使用後清潔消毒外殼', link:'https://www.frankfurt.com.tw/product/product&product_id=318', dropbox:'' },
-
 ];
 
 // Load saved materials data (must be after materials array definition)
@@ -3257,6 +3322,7 @@ function deleteAnnounce() {
   if (!a) return;
   const deletedId = a.id;
   announcements.splice(editingAnnounceIdx, 1);
+  // Also remove from announceDetails if exists (using ID key)
   if (announceDetails[deletedId]) delete announceDetails[deletedId];
   document.getElementById('announce-detail-overlay').classList.remove('open');
   renderAnnouncements();
