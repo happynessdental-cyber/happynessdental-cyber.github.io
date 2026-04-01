@@ -1273,6 +1273,42 @@ body::before {
 }
 .quick-link:hover { border-color: var(--mint); background: var(--mint-light); color: var(--ink); transform: translateY(-2px); }
 
+
+/* ─── MOBILE RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; min-height: auto; }
+  .sidebar {
+    position: fixed; left: -260px; top: 0; width: 260px;
+    height: 100vh; z-index: 999; transition: left .3s ease;
+  }
+  .sidebar.mobile-open { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 998; }
+  .mobile-overlay.show { display: block; }
+  .mobile-menu-btn {
+    display: flex !important; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: var(--r-sm);
+    border: 2px solid var(--border); background: var(--white);
+    cursor: pointer; font-size: 20px; flex-shrink: 0;
+  }
+  .main { padding: 16px; }
+  .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
+  .calendar-wrap { grid-template-columns: 1fr; gap: 14px; }
+  .mat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .detail-modal { width: 95vw; max-height: 92vh; }
+  .announce-detail-modal { width: 95vw; max-width: 95vw; }
+  .topbar { padding: 12px 16px; gap: 10px; }
+  .topbar h2 { font-size: 18px; }
+  .stat-row { flex-direction: column; gap: 10px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .schedule-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .mat-grid { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .topbar { flex-wrap: wrap; gap: 10px; }
+}
+.mobile-menu-btn { display: none; }
+.mobile-overlay { display: none; }
 </style>
 </head>
 <body>
@@ -1312,9 +1348,20 @@ async function doLogin() {
 if (sessionStorage.getItem('fumei_auth') === '1') {
   document.getElementById('login-screen').style.display = 'none';
 }
+
+(function initMobileMenu() {
+  document.querySelectorAll('.topbar').forEach(bar => {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-menu-btn';
+    btn.textContent = '☰';
+    btn.onclick = toggleMobileMenu;
+    bar.insertBefore(btn, bar.firstChild);
+  });
+})();
 </script>
 
 <div class="app">
+<div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
 
   <!-- ─── SIDEBAR ─── -->
   <aside class="sidebar">
@@ -2416,19 +2463,32 @@ try { renderTodayEvents(); } catch(e) { console.error('renderTodayEvents 錯誤:
 try { renderDashUpcoming(); } catch(e) { console.error('renderDashUpcoming 錯誤:', e); }
 
 // ─── SECTION NAV ───
+function toggleMobileMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('show');
+}
+
 function showSection(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('section-' + id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (overlay) overlay.classList.remove('show');
 }
 
 // ─── CALENDAR ───
 function renderCalendar() {
   const label = document.getElementById('cal-month-label');
+  if (!label) return;
   label.textContent = `${currentYear}年${currentMonth+1}月`;
 
   const container = document.getElementById('cal-days');
+  if (!container) return;
   container.innerHTML = '';
 
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
@@ -2607,8 +2667,10 @@ function renderDashAnnouncements() {
 
   // Show top 3 announcements
   const top3 = announcements.slice(0, 3);
-  container.innerHTML = top3.map((a, i) => `
-    <div class="announce-item ${a.type}" onclick="showAnnounceDetail(${i})" style="cursor:pointer">
+  container.innerHTML = top3.map((a, sliceIdx) => {
+      const realIdx = announcements.indexOf(a);
+      return `
+    <div class="announce-item ${a.type}" onclick="showAnnounceDetail(${realIdx})" style="cursor:pointer">
       <div class="announce-dot ${dotMap[a.type]}"></div>
       <div class="announce-content">
         <div class="announce-title">${a.title}</div>
@@ -3072,25 +3134,26 @@ function addMaterial() {
 try { initMaterials(); } catch(e) { console.error('initMaterials 錯誤:', e); }
 
 // ─── ANNOUNCEMENT DETAIL ───
+// 使用公告 ID 作為 key（避免新增/刪除公告時索引錯位）
 const announceDetails = {
-  0: { extra:'<b>各身份掛號費：</b><br>• 一般白天（優）：150 元<br>• 晚上 / 假日：200 元<br>• 員工親友 & 特殊：50 元<br>• 長優好病人：100 元<br>• 成美 / 廠商介紹：100 元<br>• 國鉅富社區：100 元<br><br><b>注意事項：</b><br>收費時請先確認病人身份類別，不確定請詢問櫃台組長。已請 @Tina 加入櫃台講義供新人參考。' },
-  1: { extra:'<b>約診規則細節：</b><br>• 約診只開放 3 個月內<br>• 超過 3 個月請病人自行約診<br>• 系統已設定：半年會自動通知病人需回診<br>• 有空檔時可釋出 4-6 個月低需求病患的約診名額<br><br><b>目的：</b>維持約診排程的效率，避免遠期爽約。' },
-  2: { extra:'<b>匯款規定：</b><br>• 金額必須「五萬元以上」才能使用匯款方式<br>• 特殊情況需事先說明清楚<br>• 低於五萬元一律使用現金或刷卡<br><br><b>提醒：</b>請櫃台向病人說明時特別強調「五萬以上」。' },
-  3: { extra:'<b>Three Way 更新進度：</b><br>• ✅ 1 診 — 已完成<br>• ✅ 2 診 — 已完成<br>• ✅ 3 診 — 已完成<br>• ⏳ 4 診 — 待材料到貨<br>• ⏳ 8 診（樓上）— 待材料到貨<br><br><b>問題修復：</b>舊診療椅 three way 水線管線卡垢較多，已請昆霖更換處理。' },
-  4: { extra:'<b>垃圾分類規則：</b><br>• 一般紙類 → 垃圾場門口外面紙箱那堆<br>• 兩個黃箱子 → 只放「液態」或「餐食」的紙容器<br>• 一般紙類與紙箱 → 丟外面<br>• 不確定 → 不要亂丟<br><br><b>原因：</b>分類不確實會造成社區困擾，請務必遵守。' },
-  5: { extra:'<b>植牙保固簽署流程：</b><br>• 適用對象：全診所醫師<br>• 簽署時機：植牙完成時<br>• 日期欄位：假牙裝戴完成日期 / 植牙醫師那格<br>• 可直接蓋醫師章（上面有日期）<br><br><b>提醒：</b>每位完成植牙的醫師都要簽，不要遺漏。' },
-  6: { extra:'<b>水雷射清洗刷具：</b><br>• Ivy 姊已購入專用刷子<br>• 放置位置：消毒室<br>• 用途：清洗水雷射瓶子<br><br><b>提醒：</b>使用完水雷射後請順手用刷子清洗。' },
-  7: { extra:'<b>水雷射使用安全須知：</b><br>• 水雷射要推到底下架子的「最前方」<br>• 後方要塞東西固定，防止前後滑動<br>• 線材如被勾到會壞掉<br>• ⚠️ 線材成本：10-40 萬！<br><br><b>歷史記錄：</b><br>3/10 首次提醒線材容易勾壞<br>3/11 管理部再次強調，發現固定瓶子被拿掉' },
-  8: { extra:'<b>W&H 消毒鍋詳情：</b><br>• 安裝位置：2 樓技工室<br>• 特色：自動進水、自動排水<br>• 適用：手術器械、手機、植牙 kit<br><br><b>使用方式：</b>放入器械後啟動即可，無需手動加水或排水。' },
-  9: { extra:'<b>每週二空檔檢查 SOP：</b><br>• 執行者：每週二早上的櫃圈助理<br>• 工作內容：檢查當週醫師空檔<br>• 發布方式：PO 到 LINE 群組告知<br><br><b>歷史執行紀錄：</b><br>3/17 — 洪醫師(15分)、陳醫師(15分)、女黃醫師(15分)、許醫師(15分)<br>3/20 — 李醫師(15分)、許醫師(30分)、蕭醫師(15分)<br>3/27 — 蕭醫師(15分)、男黃醫師(15分)、許醫師(30分/60分)' },
-  10: { extra:'<b>打卡鐘位置：</b>書櫃旁邊<br><b>行政事務單與打掃單：</b>休息室的門上<br><br>新進員工請留意這兩個位置。' },
-  11: { extra:'<b>廚房可用設備：</b><br>• 烘碗機 ✅<br>• 電池爐 ✅<br>• 微波爐 ✅<br><br><b>餐盤清洗規定：</b><br>• 不太髒（無油菜渣）→ 可在廁所洗或先用擦手紙擦過<br>• 太油的湯水 → 包起來丟垃圾桶<br>• ❌ 不要倒馬桶！會造成管路阻塞' },
-  12: { extra:'<b>Call 病患 SOP：</b><br>• 目的：表達「認真看診」的態度<br>• 重點：收了定金會好好處理，有空會安排不拖延<br>• 讓病人感受到積極性<br><br><b>適用情境：</b>收取定金後的後續安排電話。' },
-  13: { extra:'<b>本週優秀同仁：</b><br>• 🌟 林芷晴 — 服務態度優異<br>• 🌟 郭穎襄 — 工作積極認真<br>• 🌟 Gigi — 團隊合作出色<br>• 🌟 YCC — 表現突出<br><br>感謝以上同仁的用心付出！' },
-  14: { extra:'<b>收據記錄 Bot：</b><br>• 狀態：測試中<br>• 功能：自動記錄收據<br>• 目標：減少人工記錄的工作量<br><br>如有問題請回報管理部。' },
-  15: { extra:'<b>DR男黃晚間約診規則：</b><br>• ❗ 20:30 起不接現場掛號<br>• ❗ 20:15 後只能約定期檢查<br>• ❗ 20:45 設為勿約（醫師需接小孩）<br><br><b>即日起生效</b>，請所有櫃台同仁確實遵守。' },
-  16: { extra:'<b>自費本（金本）分佈：</b><br>• 櫃檯 — 1 本<br>• 2 樓 — 1 本<br>• 中央櫃（pano 櫃）— 2 本<br><br>共 4 本，如不夠再通知管理部。' },
-  17: { extra:'<b>口袋名單約診 SOP：</b><br>• 醫師有空檔 → 優先用口袋名單約回看診<br>• 讓病人知道我們有積極性<br>• 盡快幫他們處理不拖延<br><br><b>顏醫師空檔約診方向：</b><br>以下治療項目為主：<br>• 植牙<br>• 牙周<br>• 美學<br>• 雷射' },
+  1: { extra:'<b>各身份掛號費：</b><br>• 一般白天（優）：150 元<br>• 晚上 / 假日：200 元<br>• 員工親友 & 特殊：50 元<br>• 長優好病人：100 元<br>• 成美 / 廠商介紹：100 元<br>• 國鉅富社區：100 元<br><br><b>注意事項：</b><br>收費時請先確認病人身份類別，不確定請詢問櫃台組長。已請 @Tina 加入櫃台講義供新人參考。' },
+  2: { extra:'<b>約診規則細節：</b><br>• 約診只開放 3 個月內<br>• 超過 3 個月請病人自行約診<br>• 系統已設定：半年會自動通知病人需回診<br>• 有空檔時可釋出 4-6 個月低需求病患的約診名額<br><br><b>目的：</b>維持約診排程的效率，避免遠期爽約。' },
+  3: { extra:'<b>匯款規定：</b><br>• 金額必須「五萬元以上」才能使用匯款方式<br>• 特殊情況需事先說明清楚<br>• 低於五萬元一律使用現金或刷卡<br><br><b>提醒：</b>請櫃台向病人說明時特別強調「五萬以上」。' },
+  4: { extra:'<b>Three Way 更新進度：</b><br>• ✅ 1 診 — 已完成<br>• ✅ 2 診 — 已完成<br>• ✅ 3 診 — 已完成<br>• ⏳ 4 診 — 待材料到貨<br>• ⏳ 8 診（樓上）— 待材料到貨<br><br><b>問題修復：</b>舊診療椅 three way 水線管線卡垢較多，已請昆霖更換處理。' },
+  5: { extra:'<b>垃圾分類規則：</b><br>• 一般紙類 → 垃圾場門口外面紙箱那堆<br>• 兩個黃箱子 → 只放「液態」或「餐食」的紙容器<br>• 一般紙類與紙箱 → 丟外面<br>• 不確定 → 不要亂丟<br><br><b>原因：</b>分類不確實會造成社區困擾，請務必遵守。' },
+  6: { extra:'<b>植牙保固簽署流程：</b><br>• 適用對象：全診所醫師<br>• 簽署時機：植牙完成時<br>• 日期欄位：假牙裝戴完成日期 / 植牙醫師那格<br>• 可直接蓋醫師章（上面有日期）<br><br><b>提醒：</b>每位完成植牙的醫師都要簽，不要遺漏。' },
+  7: { extra:'<b>水雷射清洗刷具：</b><br>• Ivy 姊已購入專用刷子<br>• 放置位置：消毒室<br>• 用途：清洗水雷射瓶子<br><br><b>提醒：</b>使用完水雷射後請順手用刷子清洗。' },
+  8: { extra:'<b>水雷射使用安全須知：</b><br>• 水雷射要推到底下架子的「最前方」<br>• 後方要塞東西固定，防止前後滑動<br>• 線材如被勾到會壞掉<br>• ⚠️ 線材成本：10-40 萬！<br><br><b>歷史記錄：</b><br>3/10 首次提醒線材容易勾壞<br>3/11 管理部再次強調，發現固定瓶子被拿掉' },
+  9: { extra:'<b>W&H 消毒鍋詳情：</b><br>• 安裝位置：2 樓技工室<br>• 特色：自動進水、自動排水<br>• 適用：手術器械、手機、植牙 kit<br><br><b>使用方式：</b>放入器械後啟動即可，無需手動加水或排水。' },
+  10: { extra:'<b>每週二空檔檢查 SOP：</b><br>• 執行者：每週二早上的櫃圈助理<br>• 工作內容：檢查當週醫師空檔<br>• 發布方式：PO 到 LINE 群組告知<br><br><b>歷史執行紀錄：</b><br>3/17 — 洪醫師(15分)、陳醫師(15分)、女黃醫師(15分)、許醫師(15分)<br>3/20 — 李醫師(15分)、許醫師(30分)、蕭醫師(15分)<br>3/27 — 蕭醫師(15分)、男黃醫師(15分)、許醫師(30分/60分)' },
+  11: { extra:'<b>打卡鐘位置：</b>書櫃旁邊<br><b>行政事務單與打掃單：</b>休息室的門上<br><br>新進員工請留意這兩個位置。' },
+  12: { extra:'<b>廚房可用設備：</b><br>• 烘碗機 ✅<br>• 電池爐 ✅<br>• 微波爐 ✅<br><br><b>餐盤清洗規定：</b><br>• 不太髒（無油菜渣）→ 可在廁所洗或先用擦手紙擦過<br>• 太油的湯水 → 包起來丟垃圾桶<br>• ❌ 不要倒馬桶！會造成管路阻塞' },
+  13: { extra:'<b>Call 病患 SOP：</b><br>• 目的：表達「認真看診」的態度<br>• 重點：收了定金會好好處理，有空會安排不拖延<br>• 讓病人感受到積極性<br><br><b>適用情境：</b>收取定金後的後續安排電話。' },
+  14: { extra:'<b>本週優秀同仁：</b><br>• 🌟 林芷晴 — 服務態度優異<br>• 🌟 郭穎襄 — 工作積極認真<br>• 🌟 Gigi — 團隊合作出色<br>• 🌟 YCC — 表現突出<br><br>感謝以上同仁的用心付出！' },
+  15: { extra:'<b>收據記錄 Bot：</b><br>• 狀態：測試中<br>• 功能：自動記錄收據<br>• 目標：減少人工記錄的工作量<br><br>如有問題請回報管理部。' },
+  16: { extra:'<b>DR男黃晚間約診規則：</b><br>• ❗ 20:30 起不接現場掛號<br>• ❗ 20:15 後只能約定期檢查<br>• ❗ 20:45 設為勿約（醫師需接小孩）<br><br><b>即日起生效</b>，請所有櫃台同仁確實遵守。' },
+  17: { extra:'<b>自費本（金本）分佈：</b><br>• 櫃檯 — 1 本<br>• 2 樓 — 1 本<br>• 中央櫃（pano 櫃）— 2 本<br><br>共 4 本，如不夠再通知管理部。' },
+  18: { extra:'<b>口袋名單約診 SOP：</b><br>• 醫師有空檔 → 優先用口袋名單約回看診<br>• 讓病人知道我們有積極性<br>• 盡快幫他們處理不拖延<br><br><b>顏醫師空檔約診方向：</b><br>以下治療項目為主：<br>• 植牙<br>• 牙周<br>• 美學<br>• 雷射' },
 };
 
 let editingAnnounceIdx = null;
@@ -3109,7 +3172,7 @@ function showAnnounceDetail(idx) {
   let html = '<div id="ad-view-content">';
   html += '<div style="font-size:15px;color:var(--ink-soft);line-height:1.85;margin-bottom:22px">' + a.body + '</div>';
 
-  const detail = announceDetails[idx];
+  const detail = announceDetails[a.id];
   if (detail && detail.extra) {
     html += '<div style="background:var(--cream);border-radius:var(--r-md);padding:20px 22px;border:1.5px solid var(--border)">';
     html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--ink);margin-bottom:10px">📖 詳細說明</div>';
@@ -3162,9 +3225,11 @@ function saveEditAnnounce() {
 
 function deleteAnnounce() {
   if (!confirm('確定要刪除此公告嗎？')) return;
+  const a = announcements[editingAnnounceIdx];
+  if (!a) return;
+  const deletedId = a.id;
   announcements.splice(editingAnnounceIdx, 1);
-  // Also remove from announceDetails if exists
-  if (announceDetails[editingAnnounceIdx]) announceDetails.splice(editingAnnounceIdx, 1);
+  if (announceDetails[deletedId]) delete announceDetails[deletedId];
   document.getElementById('announce-detail-overlay').classList.remove('open');
   renderAnnouncements();
   saveAll();
