@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>è±è®ä¼´æç¦®æ¨è¦æ»ç¥</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;color:#fff}
+.header{text-align:center;padding:28px 16px 16px;background:linear-gradient(180deg,rgba(0,0,0,0.3),transparent)}
+.header h1{font-size:1.7em;text-shadow:0 2px 8px rgba(0,0,0,0.4);margin-bottom:4px}
+.header .sub{opacity:0.8;font-size:0.9em;margin-bottom:10px}
+.badges{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:4px 12px;border-radius:18px;font-size:0.78em}
+.tabs{display:flex;justify-content:center;gap:6px;padding:10px 8px;position:sticky;top:0;z-index:100;background:rgba(26,26,46,0.95);backdrop-filter:blur(10px)}
+.tab{padding:7px 14px;border-radius:22px;border:1.5px solid rgba(255,255,255,0.3);background:transparent;color:#fff;cursor:pointer;font-size:0.82em;transition:all 0.3s}
+.tab.active{background:#e67e22;border-color:#e67e22;color:#000;font-weight:600}
+.content{max-width:700px;margin:0 auto;padding:10px 14px 40px}
+.panel{display:none}.panel.active{display:block}
+
+.card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:16px;margin-bottom:14px;overflow:hidden;transition:all 0.3s}
+.card-img{width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:4em;position:relative}
+.card-img .overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,0.7));font-size:0.3em;text-align:right}
+.card-body{padding:14px}
+.card-body h3{font-size:1.1em;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-body .price{color:#f39c12;font-weight:700;font-size:0.95em}
+.card-body .desc{font-size:0.83em;opacity:0.75;line-height:1.6;margin:8px 0}
+.card-body .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tag{padding:3px 10px;border-radius:12px;font-size:0.72em;font-weight:600}
+.tag-hot{background:rgba(231,76,60,0.25);color:#ff6b6b}
+.tag-local{background:rgba(46,204,113,0.25);color:#2ecc71}
+.tag-limit{background:rgba(243,156,18,0.25);color:#f39c12}
+.tag-new{background:rgba(52,152,219,0.25);color:#5dade2}
+
+.review{background:rgba(0,0,0,0.2);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:0.82em;line-height:1.5}
+.review .stars{color:#f1c40f;margin-bottom:3px}
+.review .reviewer{opacity:0.5;font-size:0.85em;margin-top:4px}
+.review-toggle{color:#5dade2;font-size:0.8em;cursor:pointer;margin-top:6px;text-align:center;padding:4px}
+
+.detail-box{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.detail-box.open{max-height:600px}
+
+.rank-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-weight:700;font-size:0.85em;flex-shrink:0}
+.rank-1{background:#f1c40f;color:#000}.rank-2{background:#bdc3c7;color:#000}.rank-3{background:#cd7f32;color:#fff}
+.rank-other{background:rgba(255,255,255,0.15);color:#fff}
+
+.order-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.order-card .info h4{font-size:1em;margin-bottom:3px}
+.order-card .info p{font-size:0.82em;opacity:0.7;line-height:1.4}
+.order-card .info .reason{color:#2ecc71;font-size:0.8em;margin-top:4px}
+
+.tip-box{background:rgba(241,196,15,0.1);border:1px solid rgba(241,196,15,0.2);border-radius:12px;padding:14px;margin-bottom:14px}
+.tip-box h4{color:#f1c40f;margin-bottom:6px}
+.tip-box p{font-size:0.85em;opacity:0.8;line-height:1.6}
+
+.filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.filter-btn{padding:5px 12px;border-radius:16px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;font-size:0.78em;cursor:pointer;transition:all 0.2s}
+.filter-btn.active{background:#e67e22;border-color:#e67e22;color:#000}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ð è±è®ä¼´æç¦®æ»ç¥</h1>
+  <div class="sub">å¨å°äººæ¨è¦ Ã éå®¢çå¯¦è©å¹</div>
+  <div class="badges">
+    <span class="badge">ð è±è®å¸å</span>
+    <span class="badge">ð° é ç®åè</span>
+    <span class="badge">â­ çå¯¦è©å¹</span>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="content" id="app"></div>
+
+<script>
+var currentTab = 'recommend';
+var currentFilter = 'all';
+var openCards = {};
+
+var tabs = [
+  {id:'recommend', label:'ð æ¨è¦'},
+  {id:'order', label:'ð è³¼è²·é åº'},
+  {id:'classic', label:'ð¡ ç¶å¸'},
+  {id:'hidden', label:'ð é±èç'},
+  {id:'tips', label:'ð¡ æ»ç¥'}
+];
+
+var souvenirs = [
+  {
+    id:1, name:'æ¾è¨éº»ç³¬', cat:'classic', rank:1,
+    img:'ð¡', imgBg:'linear-gradient(135deg,#f5af19,#f12711)',
+    price:'$50-200/ç', tags:['äººæ°£NO.1','è§åå®¢å¿è²·'],
+    tagTypes:['hot','hot'],
+    desc:'è±è®æç¥åéº»ç³¤åçï¼æ¯å¤©æ°é®®æå·¥è£½ä½ï¼ä¸å«é²èåãå¤ç®å æå¤æ³æææææï¼å£æQùoHãå¿è²·å£å³ï¼ç´è±ãè±çãèéº»ãèé ­ï¼å­£ç¯éå®ï¼ã',
+    reviews:[
+      {stars:5, text:'éº»ç³¬è¶Qå½ï¼èéº»å£å³æ¯æçææï¼æ¯æ¬¡ä¾è±è®å¿è²·ä¸çåå»ã', who:'Dcardç¶²å @mochi_lover'},
+      {stars:4, text:'è§åå®¢å¿è²·æ²é¯ï¼ä½å¨å°äººèªªé¿å³å¸«çæ´å¥½åãæå©å®¶é½è²·äºï¼åæç¹è²ï¼', who:'PTT Travelæ¿å'},
+      {stars:5, text:'å¸¶åå°åéåäºï¼æ¯åäººé½èªªä¸çµå£ãä¿å­æéç­è¦ç¡å¿«åå®ã', who:'Google è©è«'}
+    ],
+    detail:'ð ååºè¶å¤ï¼ç«è»ç«ãä¸­è¯è·¯ãä¸­æ­£è·¯é½æ\nâ° 08:00-22:00\nð¡ ä¿å­æéå3å¤©ï¼å»ºè­°é¢éè±è®ç¶å¤©åè²·\nð¯ æ¨è¦ç¶åå£å³ç¦®çï¼éç¦®é«é¢',
+    buyOrder:5, buyReason:'ä¿å­æéç­ï¼3å¤©ï¼ï¼é¢éåæå¾åè²·ï¼'
+  },
+  {
+    id:2, name:'è±å´å±±åç®è¾£æ¤', cat:'classic', rank:2,
+    img:'ð¶ï¸', imgBg:'linear-gradient(135deg,#c0392b,#e74c3c)',
+    price:'$200-250/ç½', tags:['éè³¼ä¸ç½','æéååº','å¨å°äººæ¨'],
+    tagTypes:['limit','hot','local'],
+    desc:'ä½¿ç¨è±è®èªç¢ç¾é¦è¾£æ¤èæ©³é¦è¾£æ¤ï¼æ¸èç½å£ï¼é¦è¾£ä¸­å¸¶çãç¶²è·¯è¨è³¼è¦ç­åå¹´ï¼ç¾å ´æ¯äººéè³¼ä¸ç½ï¼æ¯è±è®æé£è²·å°çä¼´æç¦®ã',
+    reviews:[
+      {stars:5, text:'æäº40åéæè²·å°ï¼ä½ççå¼å¾ï¼éç¨é£¯è¶ç´å¥½åï¼ä¸ç½æ ¹æ¬ä¸å¤ ã', who:'Google è©è«'},
+      {stars:5, text:'ç¶²è·¯ä¸ç­äº6åææå°è²¨ï¼ç¾å ´è²·å°ççæåãè¾£åº¦é¤ä¸­ï¼é£ä¸åè¾£çå®¶äººé½åæ­¡ã', who:'Dcardç¶²å @spicy_fan'},
+      {stars:4, text:'å¾é¦å¾èï¼ä½æ¯äººéè³¼ä¸ç½ççå¾çè¦...ä¸æ¬¡è¦å¸¶å¨å®¶ä¸èµ·å»æéï¼', who:'PTT Gossiping'}
+    ],
+    detail:'ð è±è®å¸è±å´è¡27è\nâ° é±ä¸è³é±å­ 07:30-17:00ï¼å®å®çºæ­¢ï¼\nâ ï¸ æ¯äººéè³¼1ç½ï¼å»ºè­°ä¸æ©å°±å»\nð¡ é±æ¥å¬ä¼ï¼å¥æ±ç©º',
+    buyOrder:1, buyReason:'æ¯äººéè³·ä¸ç½ï¼è¶æ©å»è¶å¥½ï¼å»ºè­°æ©ä¸å°±è¡'
+  },
+  {
+    id:3, name:'æ´ç¾è¯é', cat:'classic', rank:3,
+    img:'ð ', imgBg:'linear-gradient(135deg,#e67e22,#f39c12)',
+    price:'$80-300/ç', tags:['è±è®è¯ç¬¬ä¸','å¥åº·ä½ç³','å¨å°äººæ¨'],
+    tagTypes:['hot','new','local'],
+    desc:'è±è®è¯ç¬¬ä¸åçï¼æ¡ç¨å¨å°ç¡æ¯èè¯ï¼é«çºæ¸ç³ä¸å«é²èåï¼ä½¿ç¨æ¥æ¬å¤©ç¶æµ·è»ç³ãç¨åµãè±è®è¯ç³¬ãçµåé»éçªè¯ãç´«å¿çªè¯èéº»ç³¬ï¼è¶å¥½åã',
+    reviews:[
+      {stars:5, text:'åè±è®äººæ¨è¦ä»éº¼ï¼10åæ5åèªªæ´ç¾è¯éãè±è®è¯ç³¬æ¯å¿è²·ä¸­çå¿è²·ï¼', who:'å¨å°äººæ¨è¦'},
+      {stars:5, text:'æ¯ä¸è¬è±è®è¯å¥½åå¤ªå¤äºï¼ä¸æéçï¼å°çé¦æ°£å¾å¤©ç¶ãç³é ­çä¹å¾ç¹å¥ï¼', who:'é£å°ç©å®¶æ¨è¦'},
+      {stars:4, text:'åè£å¾ç²¾ç¾é©åéç¦®ï¼å£å³é¸æå¤ãå¯ä¸ç¼ºé»æ¯ç«è»ç«åºå¸¸å¸¸è¦æéã', who:'Klook è©è«'}
+    ],
+    detail:'ð è±è®ç«è»ç«ãä¸­è¯è·¯ãèªå¼·å¤å¸éè¿é½æ\nâ° 09:00-21:30\nð¡ å¿è²·ï¼è±è®è¯ç³¬ãç³é ­çãåè£½ç¸å½\nð¯ ä¿å­æéè¼é·ï¼ç´2é±ï¼ï¼å¯ä»¥åè²·',
+    buyOrder:2, buyReason:'ä¿å­æéè¼é·ï¼å¯ä»¥æ©é»è²·ä¸ç¨æå¿'
+  },
+  {
+    id:4, name:'é¿å³å¸«éº»ç³¬', cat:'hidden', rank:4,
+    img:'ð¥', imgBg:'linear-gradient(135deg,#8e44ad,#9b59b6)',
+    price:'$10/é¡', tags:['å¨å°äººææ¨','50å¹´èåº','é±èç'],
+    tagTypes:['local','local','new'],
+    desc:'éæ¥­50å¹´çé±èçèåºï¼å¨å°è±è®äººççæï¼éº»ç³¬å¤ç®è»Qä¸é»çï¼ç´è±ãè±çãèéº»ä¸ç¨®å£å³ï¼æ¯é¡åªè¦10åï¼CPå¼è¶é«ã',
+    reviews:[
+      {stars:5, text:'å¨å°äººä¸æå»è²·æ¾è¨çï¼é½æ¯ä¾é¿å³å¸«ï¼10å¡ä¸é¡ä¾¿å®åå¥½åï¼é¤¡æè¶é£®æ»¿ã', who:'è±è®å¨å°äºº'},
+      {stars:5, text:'èéå¨å¾è¦ªåï¼éº»ç³¬ç®çQåº¦è·å¤§åçå®å¨ä¸åç­ç´ãè±çå£å³å¿åï¼', who:'Dcardç¶²å'},
+      {stars:5, text:'æåå¸¶æä¾çç§å¯æ¯é»ï¼åéä¹å¾åä¹åä¸å»æ¾è¨äº...æ¯æ¬¡ä¾è±è®å¿å ±å°ã', who:'Google è©è«'}
+    ],
+    detail:'ð è±è®å¸ä¸­å±±è·¯ï¼å¨å°äººæç¥éçå··å¼ï¼\nâ° æ©ä¸éè³£ï¼æ££å®å°±æ¶\nâ ï¸ æ²æè¯éºåè£ï¼å°±æ¯ç´ç²¹çå¥½å³é\nð¡ å»ºè­°è²·10-20é¡ï¼ç¶å¤©åæå¥½',
+    buyOrder:3, buyReason:'è¦è¶¥æ©å»ï¼æ££å®å°±æ²äºï¼å¯ä»¥åè²·ä¾ç¶é¶é£å'
+  },
+  {
+    id:5, name:'å¾·å©è±ä¹¾', cat:'classic', rank:5,
+    img:'ð«', imgBg:'linear-gradient(135deg,#795548,#a1887f)',
+    price:'$100-250/å', tags:['åä»£å³æ¿','æ¢æ±å¬éé¦','ç¶å¸'],
+    tagTypes:['local','new','hot'],
+    desc:'å³æ¿åä»£çè±è®èåºãæçãæ¢æ±å¬çé¦è±ä¹¾ãé¸é¸ççè¶æ¶¦å´ï¼ç½æ¢ä¸æå¤ªé¸å¾é å£ãæ¯è±è®å°æ¸éçé£é¡çç¶å¸ä¼´æç¦®ã',
+    reviews:[
+      {stars:5, text:'æ¢æ±å¬çé¦è±ä¹¾ä¸åå°±åä¸ä¸ä¾ï¼é¸çå£æå¾ç¹å¥ï¼è·ä¸è¬è±ä¹¾å®å¨ä¸åã', who:'é£å°ç©å®¶æ¨è¦'},
+      {stars:4, text:'è²·çµ¦ä¸æåçé£çå®¶äººï¼æå¤å¤§åå¥½è©ï¼ç½æ¢ä¹å¾æ¨ï¼éè¶è¶è®ã', who:'PTT Travel'},
+      {stars:4, text:'çç©ºåè£ä¿å­æ¹ä¾¿ï¼å¹æ ¼åçãå°±æ¯åºé¢ä¸å¤ªé¡¯ç¼ï¼å·é»é¯éã', who:'Google è©è«'}
+    ],
+    detail:'ð è±è®å¸ä¸­è¯è·¯\nâ° 09:00-21:00\nð¡ å¿è²·ï¼æ¢æ±å¬çé¦è±ä¹¾ãç½æ¢\nð¯ çç©ºåè£ï¼ä¿å­æéé·ï¼é©åå¸¶åå»æ¢æ¢å',
+    buyOrder:3, buyReason:'çç©ºåè£ä¸æå£ï¼è·¯ä¸ç¶éé ä¾¿è²·'
+  },
+  {
+    id:6, name:'æ­ªæ­ªæ­¬çé»ï¼èé»é¥ï¼', cat:'hidden', rank:6,
+    img:'ð¥®', imgBg:'linear-gradient(135deg,#d4a017,#c0392b)',
+    price:'$50-80/é¡', tags:['Dcardç¬¬ä¸å','ç¥ç´èé»é¥','è¦é è¨'],
+    tagTypes:['hot','hot','limit'],
+    desc:'Dcardç¶²åå¿ä¸­çè±è®ä¼´æç¦®ç¬¬ä¸åï¼ãç¥ç´èé»é¥ãé¦é¥å¤ç®åè£¹ç¶¿å¯è±æ²é¤¡ï¼æ­éé¹¹é¦èé»ï¼å±¤æ¬¡è±å¯ãéå¸¸æ¶æï¼å»ºè­°é è¨ã',
+    reviews:[
+      {stars:5, text:'åéæå¥½åçèé»é¥ï¼æ²æä¹ä¸ï¼å¤ç®è¶é¥ï¼èé»æ¿æ½¤ä¸ä¹¾ï¼è±æ²çåº¦å«å¥½ã', who:'Dcard ç±éæ¨è¦'},
+      {stars:5, text:'ä¸­ç§ç¯åæ ¹æ¬æ¶ä¸å°ï¼éå¥½å¹³å¸¸æ¥ææ©æè²·å°ãä¸æ¬¡è²·äº20é¡éäººï¼å¤§å®¶å½åæå¨åªè²·çã', who:'IG ç¾é£é¨è½å®¢'},
+      {stars:4, text:'å¹æ ¼ä¸ç®ä¾¿å®ä½åè³ªå°å¾èµ·å¹æ ¼ãå¯ä¸ç¼ºé»æ¯åºå¾å°ï¼æ²é è¨å¯è½ç½è·ã', who:'Google è©è«'}
+    ],
+    detail:'ð è±è®å¸åï¼å»ºè­°åæ¥ææ°å°åï¼\nâ° çæ¥­æéä¸åºå®ï¼å»ºè­°åé»è©±ç¢ºèª\nâ ï¸ ç±éåé å®¹æå­ç½ï¼åå¿é è¨\nð¡ é¤äºèé»é¥ï¼å¶ä»çé»ä¹å¼å¾è©¦è©¦',
+    buyOrder:1, buyReason:'è¶æ¶æï¼ä¸æ©å°±æé»è©±é è¨æç´æ¥è¡'
+  },
+  {
+    id:7, name:'ææ¦å¾©è', cat:'hidden', rank:7,
+    img:'ð', imgBg:'linear-gradient(135deg,#27ae60,#2ecc71)',
+    price:'$150-350/ç', tags:['æåµä¼´æç¦®','è±è®ææ¦','æ°åç'],
+    tagTypes:['new','local','new'],
+    desc:'ç¨è±è®ææ¦æç ç¼çåµæä¼´æç¦®ï¼è±è®ææ¦é¥åéæå°éº»ç³¬æåæ­¡è¿ï¼éº»ç³¬å¥å£å°±è½æåææ¦æç¨ç¹çæ·¡éé¦æ°£ï¼Qå½å¥½åã',
+    reviews:[
+      {stars:5, text:'éæå°éº»ç³¬è¶é©è±ï¼ææ¦é¦æ°£å¾èªç¶ï¼ä¸æ¯é£ç¨®äººå·¥é¦æçå³éãåè£ä¹å¾æéé©åéç¦­ã', who:'IG é¨è½å®¢'},
+      {stars:4, text:'å¾æåµæçä¼´æç¦®ï¼éäººå¾æé¢å­ãææ¦é¥ä¹ä¸é¯ï¼ä½ææ´æå°éº»ç³¬ã', who:'Klook è©è«'},
+      {stars:4, text:'å¹æ ¼åé«ä½åè³ªç¢ºå¯¦å¥½ãè±è®å¨å°ææ¦åçï¼æå¨å°ç¹è²ã',
+      who:'Google è©è«'}
+    ],
+    detail:'ð è±è®å¸å\nâ° 10:00-20:00\nð¡ å¿è²·ï¼éæå°éº»ç³¬ãè±è®ææ¦é¥\nð¯ åè£ç²¾ç¾ï¼éé·è¼©éä¸»ç®¡é½å¾é©å',
+    buyOrder:4, buyReason:'ä¸æ¥ï¼åç¨è·¯ä¸æç«è»ç«è²·å³å¯'
+  },
+  {
+    id:8, name:'æå«åç', cat:'hidden', rank:8,
+    img:'ð§', imgBg:'linear-gradient(135deg,#e8b4b8,#e67e22)',
+    price:'$60-100/å', tags:['ç¶²ç´çé»','æå«ç','çä¹³éº»ç³¬ç'],
+    tagTypes:['hot','new','new'],
+    desc:'ä»¥ãæå«çãåãçä¹³éº»ç³¬çãçç´ï¼æå«çä¸å£æä¸åèèè¾ï¼è£¡é ­æ¯è¼½ä¹³éªçç³å¤¾ç¤å¸è¾ï¼å£æè¶è±å¯ã',
+    reviews:[
+      {stars:5, text:'æå«çæ ¹æ¬æ¯çé»ççé©³ååï¼å¤é¢eèç³ï¼è£¡é¢f¯å¸è¾ï¼æ¯ä¸å£é½ä¸åå±¤æ¬¡ã', who:'IG ç¾é£å¸³è'},
+      {stars:4, text:'çä¹³éº»ç³¬çä¹å¾æ¨ï¼QQçéº»ç³¬éçä¹³é¤¡ï¼å°æåè¶æï¼', who:'Dcard ç¾é£ç'},
+      {stars:4, text:'å¹æ ¼ä¸ä¾¿å®ä½å¼å¾åé®®ãå·èä¿å­ï¼è¦æ³¨æééæéã', who:'Google è©è«'}
+    ],
+    detail:'ð è±è®å¸å\nâ° å»ºè­°åæ¥çæ¥­æé\nð¡ å·èååï¼å»ºè­°è²·ä¿å·è¢\nð¯ é©åèªå·±åæéçµ¦æçé»çæå',
+    buyOrder:4, buyReason:'å·èåï¼åç¨åè²·æ¯è¼ä¿é®®'
+  },
+  {
+    id:9, name:'è±è®ç¸£é¤å¥¶æ²¹é¥æ¢', cat:'classic', rank:9,
+    img:'ð¥', imgBg:'linear-gradient(135deg,#f0c27f,#4b1248)',
+    price:'$100-200/ç', tags:['ç¶å¸æ¬¾','åê¨®å£å³','èå£æ¶é£'],
+    tagTypes:['hot','new','hot'],
+    desc:'è±è®ç¶å¸ä¼´æç¦®ï¼æåå³ãåå¡ãèå³ãé®®è¥åæ¬¾ï¼å¥å£çé¦é¥èãæ¯å°æ¸åèµ·ä¾åé¶é£ãä¸åå¹´é½¡é½æçä¼´æç¦®ã',
+    reviews:[
+      {stars:4, text:'èå³æ¯æçææï¼åé¦åèï¼éå¤éè¶è®ãä¸çæ ¹æ¬ä¸å¤ ï¼å»ºè­°è³å°è²·å©çã', who:'PTT ç¶²å'},
+      {stars:4, text:'ç¶å¸ä¸ææ¬¾ï¼æ¯æ¬¡ä¾é½è²·ãä¿å­æéé·ï¼æ¢æ¢åä¹OKãå°æååæ­¡åå³ã', who:'Google è©è«'},
+      {stars:3, text:'åäººè¦ºå¾éå¥½ï¼ä½åäºåé½å¾æï¼æä»¥æ¯æ¬¡ä¾éæ¯æè²·ãé®®è¥å£å³æç¹å¥ã', who:'Dcard åäº«'}
+    ],
+    detail:'ð è±è®ç«è»ç«åãä¸­è¯è·¯é½æ\nâ° 08:30-21:30\nð¡ åç¨®å£å³å»ºè­°åè²·ä¸çåé®®\nð¯ ä¿å­æéé·ï¼ç´1åæï¼ï¼å¯ä»¥åè²·',
+    buyOrder:2, buyReason:'ä¿å­æä¹ï¼ç¶éå°±è²·ä¸ç¨ç­'
+  }
+];
+
+function render() {
+  // Render tabs
+  var tabsHtml = '';
+  tabs.forEach(function(t) {
+    tabsHtml += '<button class="tab'+(currentTab===t.id?' active':'')+'" onclick="switchTab(\''+t.id+'\')">'+t.label+'</button>';
+  });
+  document.getElementById('tabs').innerHTML = tabsHtml;
+
+  var html = '';
+
+  if (currentTab === 'recommend') {
+    html += '<div class="filter-bar">';
+    ['all','classic','hidden'].forEach(function(f) {
+      var labels = {all:'å¨é¨',classic:'ð¡ ç¶å¸å¿è²·',hidden:'ð é±èç'};
+      html += '<button class="filter-btn'+(currentFilter===f?' active':'')+'" onclick="setFilter(\''+f+'\')">'+labels[f]+'</button>';
+    });
+    html += '</div>';
+
+    var filtered = souvenirs.filter(function(s) { return currentFilter === 'all' || s.cat === currentFilter; });
+    filtered.sort(function(a,b){return a.rank - b.rank;});
+
+    filtered.forEach(function(s, idx) {
+      var isOpen = openCards[s.id];
+      html += '<div class="card">';
+      html += '<div class="card-img" style="background:'+s.imgBg+'">'+s.img;
+      html += '<div class="overlay">'+s.price+'</div></div>';
+      html += '<div class="card-body">';
+      html += '<h3><span class="rank-num '+(s.rank<=3?'rank-'+s.rank:'rank-other')+'">'+s.rank+'</span> '+s.name+'</h3>';
+      html += '<div class="tags">';
+      s.tags.forEach(function(t,i){
+        html += '<span class="tag tag-'+s.tagTypes[i]+'">'+t+'</span>';
+      });
+      html += '</div>';
+      html += '<div class="desc">'+s.desc+'</div>';
+
+      // First review always visible
+      var r = s.reviews[0];
+      html += '<div class="review"><div class="stars">'+'â'.repeat(r.stars)+'â'.repeat(5-r.stars)+'</div>'+r.text+'<div class="reviewer">â '+r.who+'</div></div>';
+
+      html += '<div class="review-toggle" onclick="toggleCard('+s.id+')">'+( isOpen ? 'â² æ¶èµ·' : 'â¼ æ´å¤è©å¹èè©³æ')+'</div>';
+      html += '<div class="detail-box'+(isOpen?' open':'')+'">';
+
+      // More reviews
+      for(var ri=1;ri<s.reviews.length;ri++){
+        var rv = s.reviews[ri];
+        html += '<div class="review"><div class="stars">'+'â'.repeat(rv.stars)+'â'.repeat(5-rv.stars)+'</div>'+rv.text+'<div class="reviewer">â '+rv.who+'</div></div>';
+      }
+
+      // Detail info
+      html += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;margin-top:8px;font-size:0.82em;line-height:1.7;white-space:pre-line">'+s.detail+'</div>';
+      html += '</div>'; // detail-box
+      html += '</div></div>'; // card-body, card
+    });
+  }
+
+  else if (currentTab === 'order') {
+    html += '<h2 style="text-align:center;margin-bottom:6px">ð å»ºè­°è³¼è²·é åº</h2>';
+    html += '<p style="text-align:center;font-size:0.82em;opacity:0.6;margin-bottom:14px">ä¾ä¿æ®®æéåæ¶æç¨åº¦å®æï¼ä¸ç½è·ä¸æµªè²»ï¼</p>';
+
+    html += '<div class="tip-box"><h4>â° è³¼è²·æéè»¸</h4><p>æ©ä¸åè¡ééåï¼åç®è¾£æ¤ãæ­ªæ­ªæ­ªèé»é¥ï¼â ä¸­åè²·ä¿å­æé·çï¼æ´ç¾è¯éãå¥¶æ²¹é¥æ¢ï¼â ä¸åéç¹è²åºï¼å¾·å©è±ä¹¾ãææ¦å¾©èï¼â é¢éåæå¾è²·éº»ç³¬åå·èçé»</p></div>';
+
+    var ordered = souvenirs.slice().sort(function(a,b){return a.buyOrder - b.buyOrder;});
+    var step = 0;
+    var lastOrder = 0;
+    ordered.forEach(function(s) {
+      if (s.buyOrder !== lastOrder) { step++; lastOrder = s.buyOrder; }
+      var labels = {1:'ð ç¬¬ä¸ç«ï¼æ©ä¸åè¡ï¼',2:'âï¸ ç¬¬äºç«ï¼ä¸æ¥æ¢æ¢è²·ï¼',3:'ð¤ ç¬¬ä¸ç«ï¼è·¯ä¸é ä¾¿ï¼',4:'ð ç¬¬åç«ï¼ä¸ååç¨åï¼',5:'ð æå¾ä¸ç«ï¼é¢éåï¼'};
+      var stepLabel = labels[s.buyOrder] || 'ð ç¬¬'+step+'ç«';
+
+      html += '<div class="order-card">';
+      html += '<div class="rank-num '+(step<=3?'rank-'+step:'rank-other')+'" style="margin-top:2px">'+s.buyOrder+'</div>';
+      html += '<div class="info">';
+      html += '<div style="font-size:0.72em;color:#f39c12;margin-bottom:2px">'+stepLabel+'</div>';
+      html += '<h4>'+s.img+' '+s.name+'</h4>';
+      html += '<p>'+s.price+'</p>';
+      html += '<div class="reason">ð¡ '+s.buyReason+'</div>';
+      html += '</div></div>';
+    });
+  }
+
+  else if (currentTab === 'classic') {
+    html += '<h2 style="text-align:center;margin-bottom:14px">ð¡ ç¶å¸å¿è²·</h2>';
+    souvenirs.filter(function(s){return s.cat==='classic';}).forEach(function(s){
+      html += renderMiniCard(s);
+    });
+  }
+
+  else if (currentTab === 'hidden') {
+    html += '<h2 style="text-align:center;margin-bottom:14px">ð é±èçæ¨è¦</h2>';
+    html += '<p style="text-align:center;font-size:0.82em;opacity:0.6;margin-bottom:14px">å¨å°äººæç¥éçå¥½æ±è¥¿ï¼</p>';
+    souvenirs.filter(function(s){return s.cat==='hidden';}).forEach(function(s){
+      html += renderMiniCard(s);
+    });
+  }
+
+  else if (currentTab === 'tips') {
+    html += '<h2 style="text-align:center;margin-bottom:14px">ð¡ è³¼è²·æ»ç¥</h2>';
+
+    html += '<div class="tip-box"><h4>ðº è³¼è²·è·¯ç·å»ºè­°</h4><p>è±è®å¸åä¼´æç¦®åºéä¸­å¨ï¼ä¸­è¯è·¯ãä¸­æ­£è·¯ãè±è®ç«è»ç«åãå»ºè­°å¾è±å´å±±åç®è¾£æ¤éå§ï¼è±å´è¡ï¼ï¼åæ²½ä¸­è¯è·¯ä¸è·¯è²·éå»ï¼æå¾å¨ç«è»ç«è²·éº»ç³¤ã</p></div>';
+
+    html += '<div class="tip-box"><h4>ð° é ç®åè</h4><p>åºæ¬æ¬¾ï¼3-4æ¨£ï¼ï¼ç´ $500-800<br>è±ªè¯æ¬¾ï¼6-7æ¨£ï¼ï¼ç´ $1,200-1,800<br>å¨é¨é½è²·ï¼ç´ $2,000-3,000<br><br>å»ºè­°è³å°è²·ï¼åç®è¾£æ¤ + æ´ç¾è¯é + ä¸ç¨®éº»ç³¬ï¼éä¸æ¨£å°±å¾æè±è®å³äºï¼</p></div>';
+
+    html += '<div class="tip-box"><h4>ð¦ ä¿å­æéæ´ç</h4><p>ð´ 1-3å¤©ï¼æ¾è¨éº»ç³¤ãé¿å³å¸«éº»ç³¤ï¼ç¶å¤©æå¥½åï¼<br>ð¡ 3-7å¤©ï¼æå«åçï¼éå·èï¼ãæ­ªæ­ªæ­ªèé»é¥<br>ð¢ 2é±ä»¥ä¸ï¼æ´ç¾è¯éãè±è®ç¸£é¤å¥¶æ²¹é¥æ¢<br>ð¢ æ¸æï¼åç®è¾£æ¤ï¼æªéå°ï¼ãå¾·å©è±ä¹¾ï¼çç©ºï¼</p></div>';
+
+    html += '<div class="tip-box"><h4>ð éç¦®å°è±¡å»ºè­°</h4><p>ð¨âð©âð§âð¦ éå®¶äººï¼æ¾è¨éº»ç³¤ãæ´ç¾è¯é<br>ð éä¸»ç®¡ï¼ææ¦å¾©èãæ´ç¾è¯éç¦®ç<br>ð« éæåï¼æ­ªæ­ªæ­ªèé»é¥ãæå«åç<br>ð´ éé·è¼©ï¼å¾·å©è±ä¹¾ãåç®è¾£æ¤<br>ð§ éå°å­©ï¼å¥¶æ²¹é¥æ¢ãæå«åççä¹³éº»ç³¤ç</p></div>';
+
+    html += '<div class="tip-box"><h4>â ï¸ æ³¨æäºé </h4><p>â¢ åç®è¾£æ¤æ¯äººéè³¼ä¸ç½ï¼å¸¶å®¶äººä¸èµ·æéå¤è²·<br>â¢ ç¾äººé­ç§éé ç´ï¼èé»é¥ä¹éé è¨<br>â¢ éº»ç³¤ä¿å­æç­ï¼å»ºè­°æå¾ä¸å¤©è²·<br>â¢ å·èååè¨å¾è²·ä¿å·è¢<br>â¢ ç«è»ç«å§ä¹æåºé¢ï¼è¶æéå¯ä»¥å¨éè²·</p></div>';
+  }
+
+  document.getElementById('app').innerHTML = html;
+}
+
+function renderMiniCard(s) {
+  var isOpen = openCards[s.id];
+  var h = '<div class="card"><div class="card-img" style="background:'+s.imgBg+';height:140px">'+s.img;
+  h += '<div class="overlay">'+s.price+'</div></div>';
+  h += '<div class="card-body"><h3>'+s.name+'</h3>';
+  h += '<div class="tags">';
+  s.tags.forEach(function(t,i){ h += '<span class="tag tag-'+s.tagTypes[i]+'">'+t+'</span>'; });
+  h += '</div>';
+  h += '<div class="desc">'+s.desc+'</div>';
+  var r = s.reviews[0];
+  h += '<div class="review"><div class="stars">'+'â'.repeat(r.stars)+'â'.repeat(5-r.stars)+'</div>'+r.text+'<div class="reviewer">â '+r.who+'</div></div>';
+  h += '<div class="review-toggle" onclick="toggleCard('+s.id+')">'+(isOpen?'â² æ¶èµ·':'â¼ æ´å¤è©å¹')+'</div>';
+  h += '<div class="detail-box'+(isOpen?' open':'')+'">';
+  for(var i=1;i<s.reviews.length;i++){
+    var rv=s.reviews[i];
+    h += '<div class="review"><div class="stars">'+'â'.repeat(rv.stars)+'â'.repeat(5-rv.stars)+'</div>'+rv.text+'<div class="reviewer">â '+rv.who+'</div></div>';
+  }
+  h += '<div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;margin-top:8px;font-size:0.82em;line-height:1.7;white-space:pre-line">'+s.detail+'</div>';
+  h += '</div></div></div>';
+  return h;
+}
+
+function switchTab(id) { currentTab = id; render(); window.scrollTo(0,0); }
+function setFilter(f) { currentFilter = f; render(); }
+function toggleCard(id) { openCards[id] = !openCards[id]; render(); }
+
+render();
+</script>
+</body>
+</html>
