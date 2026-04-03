@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>花蓮遠雄海洋公園 一日行程規劃</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    background: linear-gradient(135deg, #0c2340 0%, #1a5276 40%, #2e86c1 100%);
+    min-height: 100vh;
+    color: #fff;
+  }
+
+  .header {
+    text-align: center;
+    padding: 30px 20px 20px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+  }
+  .header h1 {
+    font-size: 2em;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    margin-bottom: 5px;
+  }
+  .header .subtitle {
+    font-size: 1em;
+    opacity: 0.85;
+    margin-bottom: 10px;
+  }
+  .header .info-badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85em;
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(12,35,64,0.95);
+    backdrop-filter: blur(10px);
+  }
+  .tab {
+    padding: 8px 18px;
+    border-radius: 25px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s;
+  }
+  .tab.active {
+    background: #f39c12;
+    border-color: #f39c12;
+    color: #000;
+    font-weight: 600;
+  }
+  .tab:hover { background: rgba(255,255,255,0.15); }
+  .tab.active:hover { background: #e67e22; }
+
+  .content { max-width: 700px; margin: 0 auto; padding: 10px 16px 40px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 30px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #f39c12, #3498db, #2ecc71);
+    border-radius: 2px;
+  }
+
+  .time-block {
+    position: relative;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+  .time-dot {
+    position: absolute;
+    left: -24px;
+    top: 14px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid #f39c12;
+    background: #0c2340;
+    z-index: 2;
+    transition: all 0.3s;
+  }
+  .time-block.show .time-dot { background: #e74c3c; border-color: #e74c3c; box-shadow: 0 0 12px rgba(231,76,60,0.6); }
+  .time-block.play .time-dot { background: #2ecc71; border-color: #2ecc71; }
+  .time-block.food .time-dot { background: #f39c12; border-color: #f39c12; }
+  .time-block.done .time-dot { background: #555; border-color: #555; }
+  .time-block.done .time-card { opacity: 0.5; }
+
+  .time-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: all 0.3s;
+  }
+  .time-card:hover { background: rgba(255,255,255,0.14); transform: translateX(4px); }
+  .time-card .time-label {
+    font-size: 0.8em;
+    color: #f39c12;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .time-card h3 { font-size: 1.1em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .time-card .desc { font-size: 0.85em; opacity: 0.75; line-height: 1.5; }
+  .time-card .location { font-size: 0.78em; color: #3498db; margin-top: 6px; }
+  .time-card .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    font-weight: 600;
+  }
+  .tag-show { background: rgba(231,76,60,0.3); color: #ff6b6b; }
+  .tag-play { background: rgba(46,204,113,0.3); color: #2ecc71; }
+  .tag-food { background: rgba(243,156,18,0.3); color: #f39c12; }
+  .tag-must { background: rgba(155,89,182,0.3); color: #bb8fce; }
+
+  .detail-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    margin-top: 0;
+  }
+  .detail-panel.open { max-height: 300px; margin-top: 10px; }
+  .detail-content {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 0.83em;
+    line-height: 1.6;
+  }
+  .detail-content .tip { color: #f1c40f; }
+
+  /* Shows panel */
+  .show-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    transition: all 0.3s;
+  }
+  .show-card:hover { background: rgba(255,255,255,0.14); }
+  .show-card h3 { font-size: 1.1em; margin-bottom: 6px; }
+  .show-card .show-time { color: #e74c3c; font-weight: 700; font-size: 1.1em; }
+  .show-card .show-loc { color: #3498db; font-size: 0.85em; margin-top: 4px; }
+  .show-card .show-desc { font-size: 0.85em; opacity: 0.75; margin-top: 6px; line-height: 1.5; }
+  .show-card .show-note {
+    background: rgba(241,196,15,0.15);
+    border-left: 3px solid #f1c40f;
+    padding: 8px 10px;
+    margin-top: 8px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.82em;
+  }
+
+  /* Map panel */
+  .zone-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: all 0.3s;
+  }
+  .zone-card:hover { background: rgba(255,255,255,0.14); }
+  .zone-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1em;
+    flex-shrink: 0;
+  }
+  .zone-info h4 { font-size: 1em; margin-bottom: 3px; }
+  .zone-info p { font-size: 0.82em; opacity: 0.75; line-height: 1.4; }
+
+  /* Tips panel */
+  .tip-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .tip-card h4 { font-size: 1em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .tip-card p { font-size: 0.85em; opacity: 0.8; line-height: 1.6; }
+
+  /* Checklist */
+  .checklist label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9em;
+  }
+  .checklist label:hover { background: rgba(255,255,255,0.12); }
+  .checklist input[type="checkbox"] {
+    width: 20px; height: 20px; accent-color: #2ecc71; flex-shrink: 0;
+  }
+  .checklist label.checked { opacity: 0.5; text-decoration: line-through; }
+
+  /* Progress bar */
+  .progress-bar {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    height: 8px;
+    margin: 15px 0;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71, #f39c12);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+  .progress-text { text-align: center; font-size: 0.85em; opacity: 0.7; margin-bottom: 8px; }
+
+  /* Current time indicator */
+  .now-indicator {
+    text-align: center;
+    padding: 10px;
+    background: rgba(46,204,113,0.15);
+    border: 1px solid rgba(46,204,113,0.3);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 0.9em;
+  }
+  .now-indicator .clock { font-size: 1.5em; font-weight: 700; color: #2ecc71; }
+
+  /* Countdown */
+  .countdown-box {
+    text-align: center;
+    padding: 12px;
+    background: rgba(231,76,60,0.15);
+    border: 1px solid rgba(231,76,60,0.3);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .countdown-box .next-show { font-size: 0.85em; opacity: 0.8; }
+  .countdown-box .countdown { font-size: 1.4em; font-weight: 700; color: #e74c3c; }
+
+  @media (max-width: 500px) {
+    .header h1 { font-size: 1.5em; }
+    .tabs { gap: 5px; padding: 10px; }
+    .tab { padding: 6px 12px; font-size: 0.8em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🐬 遠雄海洋公園行程</h1>
+  <div class="subtitle">2026/04/04（六）10:00 - 16:30</div>
+  <div class="info-badges">
+    <span class="badge">👨‍👩‍👧‍👦 2大2小</span>
+    <span class="badge">👧 10歲 + 6歲</span>
+    <span class="badge">⏱ 6.5 小時</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPanel('timeline',this)">📋 行程</button>
+  <button class="tab" onclick="showPanel('shows',this)">🎭 表演</button>
+  <button class="tab" onclick="showPanel('map',this)">🗺 園區</button>
+  <button class="tab" onclick="showPanel('tips',this)">💡 攻略</button>
+  <button class="tab" onclick="showPanel('checklist',this)">✅ 清單</button>
+</div>
+
+<div class="content">
+
+  <!-- TIMELINE PANEL -->
+  <div class="panel active" id="panel-timeline">
+    <div class="now-indicator">
+      <div>目前時間</div>
+      <div class="clock" id="current-time">--:--</div>
+      <div id="next-event-text" style="margin-top:4px;font-size:0.85em;opacity:0.7;"></div>
+    </div>
+
+    <div class="countdown-box" id="countdown-box">
+      <div class="next-show-name" id="next-show-name">下一場表演</div>
+      <div class="countdown" id="countdown-timer">--:--</div>
+    </div>
+
+    <div class="timeline">
+
+      <div class="time-block play" data-time="1000" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">10:00 - 10:20</div>
+          <h3>🎪 入園 & 搭纜車上山 <span class="tag tag-must">必做</span></h3>
+          <div class="desc">從入口搭纜車直達山頂水晶城堡區，省時省力！</div>
+          <div class="location">📍 海洋村 → 纜車站</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>一入園就搭纜車到最高點，由上往下玩最省力。纜車排隊約10分鐘。沿途可俯瞰太平洋超美景色！<br>
+              <span class="tip">📸 拍照點：</span>纜車上可拍到園區全景+太平洋。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block show" data-time="1030" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">10:30 - 11:00</div>
+          <h3>🏰 奇妙海洋慶典 <span class="tag tag-show">表演</span></h3>
+          <div class="desc">水晶城堡內的大型主題表演，結合聲光效果與互動劇場，精彩絕倫！</div>
+          <div class="location">📍 水晶城堡（8區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>搭纜車上來後直接看第一場表演！城堡內有冷氣，很舒適。<br>
+              <span class="tip">⚠️ 注意：</span>建議提前10分鐘入座。演出約25-30分鐘。<br>
+              <span class="tip">👶 兒童：</span>6歲和10歲都適合，聲光效果小朋友會很喜歡。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block play" data-time="1100" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">11:00 - 11:40</div>
+          <h3>🎢 海底王國遊樂區 <span class="tag tag-play">遊樂</span></h3>
+          <div class="desc">小藍鯨探險記、海國王號、大章魚沙灘等設施，小朋友最愛！</div>
+          <div class="location">📍 海底王國（7區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>從城堡往下走就到海底王國，5大遊樂設施都很適合親子：<br>
+              ・海國王號（旋轉木馬風）<br>
+              ・小藍鯨探險記（小雲霄飛車）<br>
+              ・水母萬花筒（旋轉杯）<br>
+              ・海底探險家（小火車）<br>
+              ・大章魚沙灘（玩沙區）<br>
+              <span class="tip">👶 兒童：</span>全部設施6歲以上都能玩！
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block play" data-time="1140" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">11:40 - 12:10</div>
+          <h3>🎡 歡樂大街 & 摩天輪 <span class="tag tag-play">遊樂</span></h3>
+          <div class="desc">搭乘33公尺高的愛情摩天輪，俯瞰太平洋美景！</div>
+          <div class="location">📍 嘉年華歡樂街（4區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>摩天輪不太需要排隊，一圈約8分鐘。可以在這條街拍拍照。<br>
+              <span class="tip">📸 拍照點：</span>嘉年華大街的彩色建築超好拍！<br>
+              <span class="tip">👶 兒童：</span>小朋友們都很愛摩天輪。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block food" data-time="1210" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">12:10 - 12:40</div>
+          <h3>🍔 午餐時間 <span class="tag tag-food">用餐</span></h3>
+          <div class="desc">在海洋村美食街用餐，選擇多元，邊吃邊休息。</div>
+          <div class="location">📍 海洋村美食街 / 莫比迪餐廳</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>提早吃午餐避開人潮，12:50有海豚秀，要預留走路時間。<br>
+              ・莫比迪餐廳：炸雞、義大利麵（小朋友愛）<br>
+              ・海洋村美食街：多種選擇<br>
+              <span class="tip">⚠️ 注意：</span>園區內餐點價格偏高，可自帶輕食點心。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block show" data-time="1250" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">12:50 - 13:20</div>
+          <h3>🐬 海豚傳說 <span class="tag tag-show">表演</span> <span class="tag tag-must">必看</span></h3>
+          <div class="desc">海豚精彩跳躍、互動表演！4/7起停演保養，今天是最後機會！</div>
+          <div class="location">📍 海洋劇場（3區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">🔥 重點：</span>4月7日起海豚劇場年度保養停演至6月，今天可能是近期最後機會看海豚秀！<br>
+              <span class="tip">💡 攻略：</span>建議提前15-20分鐘到場佔低！前排容易被水花噴到。<br>
+              <span class="tip">👶 兒童：</span>小朋友最愛的表演！海豚跳躍、旋轉、與訓練師互動。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block show" data-time="1330" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">13:30 - 14:00</div>
+          <h3>🦭 海獅巡警隊 <span class="tag tag-show">表演</span></h3>
+          <div class="desc">逗趣海獅表演，與訓練師的搞笑互動讓全場笑翻！</div>
+          <div class="location">📍 探險島劇場（2區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>海豚秀結束後步行5分鐘到探險島。海獅很聰明又搞笑，小朋友超愛！<br>
+              <span class="tip">📸 拍照點：</span>海獅表演後有機會近距離互動拍照（需額外付費）。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block show" data-time="1400" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">14:00 - 14:30</div>
+          <h3>🧜‍♀️ 美人魚實境秀 <span class="tag tag-show">表演</span> <span class="tag tag-must">必看</span></h3>
+          <div class="desc">全新「印度洋心之旅」美人魚水中實境表演，夢幻絕美！</div>
+          <div class="location">📍 探險島水族館（2區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">⚠️ 重要：</span>美人魚秀需要另外購票預約！建議提前在官網或現場購票。<br>
+              <span class="tip">💡 攻略：</span>美人魚在大水缸中表演，結合燈光音效，非常夢幻。<br>
+              <span class="tip">👶 兒童：</span>小女孩的夢想，10歲和6歲都會超級興奮。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block play" data-time="1430" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">14:30 - 15:10</div>
+          <h3>🐠 探險島水族館 <span class="tag tag-play">遊樂</span></h3>
+          <div class="desc">海底隧道、大洋池、觸摸池，近距離觀察海洋生物！</div>
+          <div class="location">📍 探險島（2區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>看完美人魚秀就在水族館慢慢逛：<br>
+              ・海底隧道：鯊魚、魟魚從頭頂游過<br>
+              ・大洋池餵食秀：查看當日時間<br>
+              ・觸摸池：小朋友可以摸海星、海參<br>
+              <span class="tip">👶 兒童：</span>觸摸池是小朋友的最愛，記得洗手！
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block play" data-time="1510" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">15:10 - 15:50</div>
+          <h3>🏴‍☠️ 海盜灣冒險 <span class="tag tag-play">遊樂</span></h3>
+          <div class="desc">海盜船、飛艇滑水道，刺激好玩！</div>
+          <div class="location">📍 海盜灣（5區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>海盜灣的設施比較刺激：<br>
+              ・黑鬍子海盜船：10歲OK，6歲可能會怕<br>
+              ・飛艇滑水道：650公尺長，會濺水！<br>
+              ・海盗藏寶窟：適合全家<br>
+              <span class="tip">⚠️ 注意：</span>滑水道會弄濕，建議帶替換衣物或雨衣。6歲小朋友可能身高不夠某些設施。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block play" data-time="1550" >
+        <div class="time-dot"></div>
+        <div class="time-card">
+          <div class="time-label">15:50 - 16:20</div>
+          <h3>🛍 海洋村購物 & 紀念品</h3>
+          <div class="desc">回到入口區買紀念品、吃點心，幫一天畫下完美句點。</div>
+          <div class="location">📍 海洋村（1區）</div>
+          <div class="detail-panel">
+            <div class="detail-content">
+              <span class="tip">💡 攻略：</span>海洋村有各式紀念品店，海豚和美人魚周邊很受歡迎。<br>
+              ・也可以買個冰淇淋或飲料讓小朋友補充能量<br>
+              <span class="tip">👶 兒童：</span>小朋友一定會想買東西，可以事先約定預算。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="time-block" data-time="1630" >
+        <div class="time-dot" style="background:#9b59b6;border-color:#9b59b6;"></div>
+        <div class="time-card">
+          <div class="time-label">16:30</div>
+          <h3>👋 離園 - 完美的一天！</h3>
+          <div class="desc">帶著滿滿的回憶和紀念品回家！</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SHOWS PANEL -->
+  <div class="panel" id="panel-shows">
+    <h2 style="text-align:center;margin-bottom:16px;">🎭 今日表演一覽</h2>
+    <p style="text-align:center;font-size:0.85em;opacity:0.7;margin-bottom:16px;">
+      ⚠️ 實際時間以當日現場公告為準<br>
+      建議入園後先確認最新節目表
+    </p>
+
+    <div class="show-card">
+      <h3>🏰 奇妙海洋慶典</h3>
+      <div class="show-time">10:30 / 14:30</div>
+      <div class="show-loc">📍 水晶城堡（8區）</div>
+      <div class="show-desc">大型主題表演秀，結合聲光效果的互動劇場體驗。建議看 10:30 場次（已安排在行程中）。</div>
+    </div>
+
+    <div class="show-card">
+      <h3>🐬 海豚傳說</h3>
+      <div class="show-time">12:50</div>
+      <div class="show-loc">📍 海洋劇場（3區）</div>
+      <div class="show-desc">海豚精彩的跳躍、旋轉和與訓練師的互動表演。</div>
+      <div class="show-note">🔥 4月7日起海豚劇場進入年度保養停演至6月！今天是近期最後機會！</div>
+    </div>
+
+    <div class="show-card">
+      <h3>🦭 海獅巡警隊</h3>
+      <div class="show-time">09:30 / 13:30</div>
+      <div class="show-loc">📍 探險島劇場（2區）</div>
+      <div class="show-desc">搞笑又聰明的海獅與訓練師互動表演。建議看 13:30 場次。</div>
+    </div>
+
+    <div class="show-card">
+      <h3>🧜‍♀️ 美人魚實境秀</h3>
+      <div class="show-time">11:00 / 14:00 / 15:30</div>
+      <div class="show-loc">📍 探險島水族館（2區）</div>
+      <div class="show-desc">全新「印度洋心之旅」，美人魚在大水缸中的夢幻表演。</div>
+      <div class="show-note">⚠️ 需另外購票預約入場！建議選 14:00 場次（已安排在行程中）。請提前在官網或到場後購票。</div>
+    </div>
+
+    <div class="show-card">
+      <h3>🐠 大洋池餵食秀</h3>
+      <div class="show-time">依現場公告</div>
+      <div class="show-loc">📍 探險島水族館（2區）</div>
+      <div class="show-desc">潛水員在大洋池中餵食各種魚類，透過玻璃近距離觀賞。</div>
+    </div>
+
+    <div class="show-card">
+      <h3>🎉 戶外慶典遊行</h3>
+      <div class="show-time">依現場公告</div>
+      <div class="show-loc">📍 園區街道</div>
+      <div class="show-desc">卡通角色的歡樂遊行，在街道上與遊客互動。</div>
+    </div>
+  </div>
+
+  <!-- MAP PANEL -->
+  <div class="panel" id="panel-map">
+    <h2 style="text-align:center;margin-bottom:16px;">🗺 八大主題區</h2>
+    <p style="text-align:center;font-size:0.85em;opacity:0.6;margin-bottom:16px;">建議路線：搭纜車到 8區 → 7區 → 4區 → 3區 → 2區 → 5區 → 1區</p>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#3498db;">1</div>
+      <div class="zone-info">
+        <h4>🏘 海洋村</h4>
+        <p>入口區域，北美海邊村落風格。商店街、美食街、紀念品店。入園和離園都會經過這裡。</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#e74c3c;">2</div>
+      <div class="zone-info">
+        <h4>🏝 探險島</h4>
+        <p>水族館、海獅劇場、美人魚秀、觸摸池、海底隧道。表演最密集的區域！</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#e67e22;">3</div>
+      <div class="zone-info">
+        <h4>🐬 海洋劇場</h4>
+        <p>海豚表演劇場，可容納千人。今天是海豚秀近期最後機會（4/7起停演保養）。</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#f1c40f;color:#000;">4</div>
+      <div class="zone-info">
+        <h4>🎡 嘉年華歡樂街</h4>
+        <p>250公尺嘉年華大街，33公尺愛情摩天輪。拍照超好看的彩色建築！</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#2c3e50;">5</div>
+      <div class="zone-info">
+        <h4>🏴‍☠️ 海盜灣</h4>
+        <p>650公尺飛艇滑水道、黑鬍子海盜船、海盗藏寶窟。比較刺激的區域！</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#16a085;">6</div>
+      <div class="zone-info">
+        <h4>🌋 布萊登海岸</h4>
+        <p>碰碰船、旋轉木馬等溫和設施，適合低年齡小朋友。</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#8e44ad;">7</div>
+      <div class="zone-info">
+        <h4>🐙 海底王國</h4>
+        <p>5大親子遊樂設施：海國王號、小藍鯨探險記、水母萬花筒、海底探險家、大章魚沙灘。</p>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-num" style="background:#c0392b;">8</div>
+      <div class="zone-info">
+        <h4>🏰 水晶城堡</h4>
+        <p>園區最高點，可眺望全景+太平洋。水晶城堡表演秀「奇妙海洋慶典」在此演出。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIPS PANEL -->
+  <div class="panel" id="panel-tips">
+    <h2 style="text-align:center;margin-bottom:16px;">💡 親子攻略</h2>
+
+    <div class="tip-card">
+      <h4>🎫 門票資訊</h4>
+      <p>全票 $830（成人）、學童票（6-12歲）、幼童票（3-6歲）另有優惠。美人魚秀需另外購票！建議先上官網或 KKday 買票較便宜。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>🐬 海豚秀最後機會！</h4>
+      <p>4月7日起海豚劇場進入年度保養停演至6月12日。今天4/4是近期最後能看到海豚秀的週末，務必提前15-20分鐘到海洋劇場佔低！</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>🧜‍♀️ 美人魚秀預約</h4>
+      <p>美人魚實境秀需要另外購票才能入場觀看。建議提前在遠雄海洋公園官網商城預約購票，現場購票可能售罄。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>🚡 善用纜車</h4>
+      <p>園區建在斜坡上，高低差很大。一入園就搭纜車到最高點（水晶城堡），再一路往下玩回入口最省力！園區也有電扶梯和免費接駁車。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>👶 6歲兒童注意</h4>
+      <p>大部分設施6歲可玩，但海盜船和飛艇滑水道有身高限制（約110-120cm）。建議先量身高再排隊。海底王國全區都適合！</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>🌧 天氣準備</h4>
+      <p>花蓮天氣多變，建議帶薄外套和雨具。滑水道會弄濕，帶替換衣物或輕便雨衣。防曬也很重要！</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>🍱 飲食建議</h4>
+      <p>園區餐點偏買（套餐約$200-350）。可以自帶水壺和小點心。建議12:10提早吃午餐避開人潮，才來得及12:50看海豚秀。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>📞 園區電話</h4>
+      <p>遠雄海洋公園客服：(03) 812-3199<br>可來電確認當日最新表演時刻表。</p>
+    </div>
+  </div>
+
+  <!-- CHECKLIST PANEL -->
+  <div class="panel" id="panel-checklist">
+    <h2 style="text-align:center;margin-bottom:10px;">✅ 出發清單</h2>
+    <div class="progress-text" id="check-progress">0 / 14 已完成</div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+    <div class="checklist" id="checklist">
+      <label><input type="checkbox" onchange="updateChecklist()"> 門票（建議先網路購買）</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 美人魚秀門票（需另外預約）</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 防曬乳 & 帽子</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 薄外套（室內冷氣強）</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 輕便雨衣或雨具</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 替換衣物（玩水設施用）</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 水壺 & 小點心</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 手機充電寶</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 兒童推車（6歲可能走累）</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 濕紙巾 & 面紙</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 零錢（投幣式置物櫃）</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 相機 / 手機空間足夠</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 確認當日表演時刻表</label>
+      <label><input type="checkbox" onchange="updateChecklist()"> 導航設定：花蓮縣壽豐鄉鹽寮189號</label>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleDetail(el) {
+  var panel = el.querySelector('.detail-panel');
+  if (panel) {
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+    } else {
+      // Close all others first
+      document.querySelectorAll('.detail-panel.open').forEach(function(p) { p.classList.remove('open'); });
+      panel.classList.add('open');
+    }
+  }
+}
+
+function updateChecklist() {
+  const checks = document.querySelectorAll('#checklist input[type="checkbox"]');
+  let done = 0;
+  checks.forEach((c, i) => {
+    const label = c.parentElement;
+    if (c.checked) { done++; label.classList.add('checked'); }
+    else { label.classList.remove('checked'); }
+  });
+  document.getElementById('check-progress').textContent = done + ' / ' + checks.length + ' 已完成';
+  document.getElementById('progress-fill').style.width = (done / checks.length * 100) + '%';
+  localStorage.setItem('oceanpark_checklist', JSON.stringify([...checks].map(c=>c.checked)));
+}
+
+// Load saved checklist
+try {
+  const saved = JSON.parse(localStorage.getItem('oceanpark_checklist') || '[]');
+  if (saved.length) {
+    document.querySelectorAll('#checklist input[type="checkbox"]').forEach((c,i) => {
+      if (saved[i]) c.checked = true;
+    });
+    updateChecklist();
+  }
+} catch(e) {}
+
+// Clock & countdown
+const shows = [
+  { time: '10:30', name: '🏰 奇妙海洋慶典' },
+  { time: '12:50', name: '🐬 海豚傳說' },
+  { time: '13:30', name: '🦭 海獅巡警隊' },
+  { time: '14:00', name: '🧜‍♀️ 美人魚實境秀' },
+];
+
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('current-time').textContent = h + ':' + m;
+
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  // Find next show
+  let nextShow = null;
+  for (const s of shows) {
+    const [sh, sm] = s.time.split(':').map(Number);
+    const showMin = sh * 60 + sm;
+    if (showMin > nowMin) { nextShow = { ...s, min: showMin }; break; }
+  }
+
+  const countdownBox = document.getElementById('countdown-box');
+  if (nextShow) {
+    const diff = nextShow.min - nowMin;
+    document.getElementById('next-show-name').textContent = '下一場：' + nextShow.name;
+    document.getElementById('countdown-timer').textContent = diff + ' 分鐘後開始';
+    countdownBox.style.display = 'block';
+  } else {
+    countdownBox.style.display = 'none';
+  }
+
+  // Update timeline highlights
+  document.querySelectorAll('.time-block').forEach(block => {
+    const t = parseInt(block.dataset.time);
+    if (t && nowMin > Math.floor(t/100)*60 + t%100 + 30) {
+      block.classList.add('done');
+    }
+  });
+}
+
+updateClock();
+setInterval(updateClock, 30000);
+
+// Fix click delegation for time blocks
+document.querySelectorAll('.time-block').forEach(function(block) {
+  block.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleDetail(this);
+  });
+});
+</script>
+
+</body>
+</html>
